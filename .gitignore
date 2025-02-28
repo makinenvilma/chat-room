@@ -1,0 +1,16 @@
+# Ympäristömuuttujat
+.env
+
+# Node.js riippuvuudet
+node_modules/
+
+# Lokit ja debug-tiedostot
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# IDE/editorin asetukset
+.vscode/
+.idea/
+.DS_Store

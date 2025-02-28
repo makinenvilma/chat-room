@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chat-huone</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+    <!-- ✅ Käyttäjänimen näyttö -->
+    <div id="current-username-display">
+      <p>Nykyinen nimimerkki: <span id="display-username"></span></p>
+    </div>
+
+    <!-- ✅ Nimimerkin vaihtaminen -->
+    <div id="username-section">
+      <h2>Aseta tai vaihda nimimerkki</h2>
+      <input type="text" id="username-input" placeholder="Uusi nimimerkki" />
+      <button onclick="setUsername()">Aseta nimimerkki</button>
+    </div>
+
+    <h1>Chat-huoneet</h1>
+
+    <!-- ✅ Lista saatavilla olevista huoneista -->
+    <div id="room-list">
+      <h2>Liity huoneeseen</h2>
+      <ul id="available-rooms"></ul>
+    </div>
+
+    <!-- ✅ Huoneen luonti -->
+    <div id="create-room">
+      <h2>Luo uusi huone</h2>
+      <input type="text" id="room-name" placeholder="Huoneen nimi" />
+      <input type="password" id="room-password" placeholder="Salasana (valinnainen)" />
+      <button onclick="createRoom()">Luo huone</button>
+    </div>
+
+    <!-- ✅ Chat-huoneen näkymä -->
+    <div id="chat-room" style="display: none">
+      <h2 id="room-title"></h2>
+      <div id="messages"></div>
+      <input type="text" id="message-input" placeholder="Kirjoita viesti" />
+      <button onclick="sendMessage()">Lähetä</button>
+      <button onclick="leaveRoom()">Poistu</button>
+    </div>
+  </div>
+
+  <!-- ✅ Socket.io asiakaspuolen kirjasto -->
+  <script src="http://localhost:5000/socket.io/socket.io.js"></script>
+  
+  <!-- ✅ Sovelluksen JavaScript -->
+  <script src="app.js"></script>
+</body>
+</html>
