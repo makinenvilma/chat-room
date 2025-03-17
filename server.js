@@ -18,7 +18,6 @@ mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/chatroom", 
 }).then(() => console.log("✅ MongoDB-yhteys onnistui"))
   .catch((err) => console.error("❌ MongoDB-virhe:", err));
 
-// ✅ MongoDB-malli huoneille
 const RoomSchema = new mongoose.Schema({
   name: String,
   password: String,
@@ -27,16 +26,13 @@ const RoomSchema = new mongoose.Schema({
 
 const Room = mongoose.model("Room", RoomSchema);
 
-// ** Tallennetaan aktiiviset huoneet ja niiden ajastimet **
 const activeRooms = {};
 
-// ✅ API-reitti: Hae huoneet
 app.get("/rooms", async (req, res) => {
   const rooms = await Room.find({}, "name password");
   res.json(rooms);
 });
 
-// ✅ API-reitti: Luo huone
 app.post("/rooms", async (req, res) => {
   const { name, password } = req.body;
   if (!name) return res.status(400).json({ error: "Huoneen nimi on pakollinen" });
@@ -46,7 +42,6 @@ app.post("/rooms", async (req, res) => {
   res.json(newRoom);
 });
 
-// ✅ API-reitti: Hae kaikki tallennetut viestit
 app.get("/messages", async (req, res) => {
   try {
     const rooms = await Room.find({}, "name messages");
@@ -62,11 +57,9 @@ app.get("/messages", async (req, res) => {
   }
 });
 
-// ✅ Socket.io: Käyttäjät ja huoneiden poistomekanismi
 io.on("connection", (socket) => {
   console.log("🔗 Käyttäjä liittyi");
 
-  // Käyttäjä liittyy huoneeseen
   socket.on("joinRoom", async ({ roomName, password, username }) => {
     const room = await Room.findOne({ name: roomName });
     if (!room) return socket.emit("error", "Huonetta ei löydy!");
@@ -77,52 +70,54 @@ io.on("connection", (socket) => {
 
     socket.join(roomName);
 
-    // Poistetaan mahdollinen ajastin, jos joku liittyy takaisin
     if (activeRooms[roomName]?.timeout) {
       clearTimeout(activeRooms[roomName].timeout);
       delete activeRooms[roomName].timeout;
     }
 
-    // Kasvatetaan käyttäjälaskuria
     activeRooms[roomName] = activeRooms[roomName] || { users: 0 };
     activeRooms[roomName].users++;
 
     socket.emit("roomJoined", room.messages);
+  });
 
-    // ✅ Viestin lähettäminen
-    socket.on("sendMessage", async ({ message }) => {
-      const newMessage = { user: username, text: message, timestamp: new Date() };
-      await Room.updateOne({ name: roomName }, { $push: { messages: newMessage } });
+  socket.on("sendMessage", async ({ roomName, message, username }) => {
+    const room = await Room.findOne({ name: roomName });
+    if (!room) return socket.emit("error", "Huonetta ei löydy!");
 
-      io.to(roomName).emit("newMessage", newMessage);
-    });
+    const newMessage = { user: username, text: message, timestamp: new Date() };
+    await Room.updateOne({ name: roomName }, { $push: { messages: newMessage } });
+    io.to(roomName).emit("newMessage", newMessage);
+  });
 
-    // ✅ Käyttäjä poistuu huoneesta
-    socket.on("leaveRoom", async () => {
-      console.log(`🚪 ${username} poistui huoneesta ${roomName}`);
+  socket.on("leaveRoom", async ({ roomName, username }) => {
+    console.log(`🚪 ${username} poistui huoneesta ${roomName}`);
+    socket.leave(roomName);
 
-      if (activeRooms[roomName]) {
-        activeRooms[roomName].users--;
+    if (activeRooms[roomName]) {
+      activeRooms[roomName].users--;
 
-        if (activeRooms[roomName].users === 0) {
-          console.log(`🕒 Käynnistetään ajastin huoneen "${roomName}" poistamiseksi 1 minuutin kuluttua...`);
+      if (activeRooms[roomName].users === 0) {
+        console.log(`🕒 Käynnistetään ajastin huoneen "${roomName}" poistamiseksi 1 minuutin kuluttua...`);
 
-          activeRooms[roomName].timeout = setTimeout(async () => {
-            const roomExists = await Room.findOne({ name: roomName });
+        activeRooms[roomName].timeout = setTimeout(async () => {
+          const roomExists = await Room.findOne({ name: roomName });
 
-            if (roomExists) {
-              await Room.deleteOne({ name: roomName });
-              console.log(`❌ Huone "${roomName}" poistettu.`);
-            }
+          if (roomExists) {
+            await Room.deleteOne({ name: roomName });
+            console.log(`❌ Huone "${roomName}" poistettu.`);
+          }
 
-            delete activeRooms[roomName];
-          }, 60000); // 1 minuutti = 60000 ms
-        }
+          delete activeRooms[roomName];
+        }, 60000);
       }
-    });
+    }
+  });
+
+  socket.on("disconnect", () => {
+    console.log("❌ Käyttäjä poistui", socket.id);
   });
 });
 
-// ✅ Käynnistetään palvelin
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`🚀 Serveri käynnissä portissa ${PORT}`));
