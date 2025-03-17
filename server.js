@@ -18,16 +18,24 @@ mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/chatroom", 
 }).then(() => console.log("✅ MongoDB-yhteys onnistui"))
   .catch((err) => console.error("❌ MongoDB-virhe:", err));
 
+// ✅ Määritellään MongoDB:n skeemat
 const RoomSchema = new mongoose.Schema({
   name: String,
   password: String,
-  messages: [{ user: String, text: String, timestamp: Date }],
 });
-
 const Room = mongoose.model("Room", RoomSchema);
+
+const MessageSchema = new mongoose.Schema({
+  roomName: String,
+  user: String,
+  text: String,
+  timestamp: { type: Date, default: Date.now },
+});
+const Message = mongoose.model("Message", MessageSchema);
 
 const activeRooms = {};
 
+// ✅ API-reitit huoneille ja viesteille
 app.get("/rooms", async (req, res) => {
   const rooms = await Room.find({}, "name password");
   res.json(rooms);
@@ -37,29 +45,45 @@ app.post("/rooms", async (req, res) => {
   const { name, password } = req.body;
   if (!name) return res.status(400).json({ error: "Huoneen nimi on pakollinen" });
 
-  const newRoom = new Room({ name, password, messages: [] });
+  const newRoom = new Room({ name, password });
   await newRoom.save();
   res.json(newRoom);
 });
 
 app.get("/messages", async (req, res) => {
   try {
-    const rooms = await Room.find({}, "name messages");
-    const allMessages = rooms.map(room => ({
-      room: room.name,
-      messages: room.messages
-    }));
-
-    res.json(allMessages);
+    const messages = await Message.find({}, "roomName user text timestamp");
+    res.json(messages);
   } catch (error) {
     console.error("❌ Viestien hakeminen epäonnistui:", error);
     res.status(500).json({ error: "Palvelinvirhe" });
   }
 });
 
+// ✅ Socket.IO-yhteydet
 io.on("connection", (socket) => {
-  console.log("🔗 Käyttäjä liittyi");
+  console.log("🔗 Käyttäjä liittyi:", socket.id);
 
+  // ✅ Poistetaan aiempi "sendMessage"-tapahtumankäsittelijä ennen uuden rekisteröintiä
+  socket.removeAllListeners("sendMessage");
+
+  // ✅ Viestin lähettäminen (rekisteröidään vain kerran per socket)
+  socket.on("sendMessage", async ({ roomName, message, username }) => {
+    if (!roomName) return socket.emit("error", "Huonetta ei määritelty!");
+
+    const room = await Room.findOne({ name: roomName });
+    if (!room) return socket.emit("error", "Huonetta ei löydy!");
+
+    const newMessage = new Message({ roomName, user: username, text: message });
+    await newMessage.save();
+
+    console.log(`📨 Viesti lähetetty huoneeseen ${roomName}:`, newMessage);
+
+    // ✅ Lähetetään viesti vain kerran huoneeseen
+    io.to(roomName).emit("newMessage", newMessage);
+  });
+
+  // ✅ Käyttäjä liittyy huoneeseen
   socket.on("joinRoom", async ({ roomName, password, username }) => {
     const room = await Room.findOne({ name: roomName });
     if (!room) return socket.emit("error", "Huonetta ei löydy!");
@@ -68,7 +92,18 @@ io.on("connection", (socket) => {
       return socket.emit("error", "Väärä salasana!");
     }
 
+    // ✅ Poistetaan käyttäjä kaikista vanhoista huoneista
+    const oldRooms = Array.from(socket.rooms);
+    oldRooms.forEach((r) => {
+      if (r !== socket.id) { // socket.id on käyttäjän oma huone, sitä ei poisteta
+        socket.leave(r);
+        console.log(`🚪 ${username} poistui huoneesta: ${r}`);
+      }
+    });
+
+    // ✅ Liitetään käyttäjä uuteen huoneeseen
     socket.join(roomName);
+    console.log(`✅ ${username} liittyi huoneeseen: ${roomName}`);
 
     if (activeRooms[roomName]?.timeout) {
       clearTimeout(activeRooms[roomName].timeout);
@@ -78,18 +113,11 @@ io.on("connection", (socket) => {
     activeRooms[roomName] = activeRooms[roomName] || { users: 0 };
     activeRooms[roomName].users++;
 
-    socket.emit("roomJoined", room.messages);
+    const messages = await Message.find({ roomName });
+    socket.emit("roomJoined", messages);
   });
 
-  socket.on("sendMessage", async ({ roomName, message, username }) => {
-    const room = await Room.findOne({ name: roomName });
-    if (!room) return socket.emit("error", "Huonetta ei löydy!");
-
-    const newMessage = { user: username, text: message, timestamp: new Date() };
-    await Room.updateOne({ name: roomName }, { $push: { messages: newMessage } });
-    io.to(roomName).emit("newMessage", newMessage);
-  });
-
+  // ✅ Käyttäjä poistuu huoneesta
   socket.on("leaveRoom", async ({ roomName, username }) => {
     console.log(`🚪 ${username} poistui huoneesta ${roomName}`);
     socket.leave(roomName);
@@ -114,10 +142,12 @@ io.on("connection", (socket) => {
     }
   });
 
+  // ✅ Käyttäjä katkaisee yhteyden
   socket.on("disconnect", () => {
     console.log("❌ Käyttäjä poistui", socket.id);
   });
 });
 
+// ✅ Käynnistetään palvelin
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`🚀 Serveri käynnissä portissa ${PORT}`));
