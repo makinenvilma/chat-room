@@ -82,7 +82,11 @@ function joinRoom(room) {
     loadMessages(messages);
   });
 
-  socket.on("newMessage", (message) => {
+
+    // Ensure we remove previous listeners before adding a new one
+    socket.off("newMessage");  
+    socket.on("newMessage", (message) => {
+    
     displayMessage(message);
   });
 }

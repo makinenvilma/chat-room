@@ -68,7 +68,11 @@ io.on("connection", (socket) => {
   socket.removeAllListeners("sendMessage");
 
   // ✅ Viestin lähettäminen (rekisteröidään vain kerran per socket)
-  socket.on("sendMessage", async ({ roomName, message, username }) => {
+
+    // Ensure we remove any previous listeners before adding a new one
+    socket.removeAllListeners("sendMessage");  
+    socket.on("sendMessage", async ({ roomName, message, username }) => {
+    
     if (!roomName) return socket.emit("error", "Huonetta ei määritelty!");
 
     const room = await Room.findOne({ name: roomName });
