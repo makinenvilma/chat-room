@@ -130,18 +130,9 @@ io.on("connection", (socket) => {
       activeRooms[roomName].users--;
 
       if (activeRooms[roomName].users === 0) {
-        console.log(`🕒 Käynnistetään ajastin huoneen "${roomName}" poistamiseksi 1 minuutin kuluttua...`);
-
-        activeRooms[roomName].timeout = setTimeout(async () => {
-          const roomExists = await Room.findOne({ name: roomName });
-
-          if (roomExists) {
-            await Room.deleteOne({ name: roomName });
-            console.log(`❌ Huone "${roomName}" poistettu.`);
-          }
-
-          delete activeRooms[roomName];
-        }, 60000);
+        console.log(`❌ Huone "${roomName}" poistetaan välittömästi.`);
+        await Room.deleteOne({ name: roomName });
+        delete activeRooms[roomName];
       }
     }
   });
