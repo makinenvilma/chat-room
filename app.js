@@ -52,15 +52,26 @@ async function createRoom() {
   }
 
   try {
-    await fetch("http://localhost:5000/rooms", {
+    const response = await fetch("http://localhost:5000/rooms", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: roomName, password: roomPassword }),
     });
 
+    if (response.status === 409) {
+      const data = await response.json();
+      alert(data.error || "Tämän niminen huone on jo olemassa.");
+      return;
+    }
+
+    if (!response.ok) {
+      throw new Error("Huoneen luonti epäonnistui.");
+    }
+
     loadRooms();
   } catch (error) {
     console.error("Huoneen luonti epäonnistui:", error);
+    alert("Virhe luodessa huonetta. Yritä myöhemmin uudelleen.");
   }
 }
 

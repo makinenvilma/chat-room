@@ -43,6 +43,11 @@ app.post("/rooms", async (req, res) => {
   const { name, password } = req.body;
   if (!name) return res.status(400).json({ error: "Huoneen nimi on pakollinen" });
 
+  const existingRoom = await Room.findOne({ name });
+  if (existingRoom) {
+    return res.status(409).json({ error: "Tämän niminen huone on jo olemassa. Kokeile toista nimeä." });
+  }
+
   const newRoom = new Room({ name, password });
   await newRoom.save();
   res.json(newRoom);
