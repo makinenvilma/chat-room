@@ -155,3 +155,52 @@ app.delete("/rooms/:roomName", async (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`🚀 Serveri käynnissä portissa ${PORT}`));
+
+
+const UserSchema = new mongoose.Schema({
+  username: { type: String, unique: true },
+});
+const User = mongoose.model("User", UserSchema);
+
+app.post("/users", async (req, res) => {
+  const { username } = req.body;
+  if (!username) return res.status(400).json({ error: "Käyttäjänimi on pakollinen" });
+
+  const existingUser = await User.findOne({ username });
+  if (existingUser) {
+    return res.status(409).json({ error: "Tämä käyttäjänimi on jo käytössä." });
+  }
+
+  const newUser = new User({ username });
+  await newUser.save();
+  res.status(201).json({ message: "Käyttäjä luotu", user: newUser });
+});
+
+app.get("/users", async (req, res) => {
+  const users = await User.find({}, "username");
+  res.json(users);
+});
+
+
+
+app.put("/users", async (req, res) => {
+  const { oldUsername, newUsername } = req.body;
+  if (!oldUsername || !newUsername) {
+    return res.status(400).json({ error: "Vanha ja uusi käyttäjänimi vaaditaan" });
+  }
+
+  // Poista vanha käyttäjä
+  await User.deleteOne({ username: oldUsername });
+
+  // Tarkista ettei uusi käyttäjänimi ole jo olemassa
+  const existing = await User.findOne({ username: newUsername });
+  if (existing) {
+    return res.status(409).json({ error: "Uusi käyttäjänimi on jo käytössä" });
+  }
+
+  // Luo uusi käyttäjä
+  const user = new User({ username: newUsername });
+  await user.save();
+
+  res.status(200).json({ message: "Käyttäjänimi päivitetty", user });
+});

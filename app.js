@@ -6,6 +6,7 @@ let currentRoom = null;
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("display-username").textContent = username;
   loadRooms();
+  registerUser(username);
 });
 
 function generateRandomUsername() {
@@ -69,6 +70,7 @@ async function createRoom() {
     }
 
     loadRooms();
+  registerUser(username);
   } catch (error) {
     console.error("Huoneen luonti epäonnistui:", error);
     alert("Virhe luodessa huonetta. Yritä myöhemmin uudelleen.");
@@ -133,11 +135,31 @@ function sendMessage() {
   messageInput.value = "";
 }
 
+
 function setUsername() {
   const usernameInput = document.getElementById("username-input").value.trim();
   if (usernameInput) {
-    username = usernameInput;
+    const oldUsername = username;
+    const newUsername = usernameInput;
+    username = newUsername;
     document.getElementById("display-username").textContent = username;
+
+    // Lähetetään muutos backendille
+    updateUsername(oldUsername, newUsername);
+  }
+}
+
+async function updateUsername(oldUsername, newUsername) {
+  try {
+    await fetch("http://localhost:5000/users", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ oldUsername, newUsername }),
+    });
+  } catch (error) {
+    console.error("Käyttäjänimen päivitys epäonnistui:", error);
   }
 }
 
@@ -152,4 +174,19 @@ function displayMessage(message) {
   const msgDiv = document.createElement("div");
   msgDiv.textContent = `${message.user}: ${message.text}`;
   messagesDiv.appendChild(msgDiv);
+}
+
+
+async function registerUser(username) {
+  try {
+    await fetch("http://localhost:5000/users", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username }),
+    });
+  } catch (error) {
+    console.error("Käyttäjän rekisteröinti epäonnistui:", error);
+  }
 }
