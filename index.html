@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fi">
 <head>
@@ -51,5 +52,15 @@
   
   <!-- ✅ Sovelluksen JavaScript -->
   <script src="app.js"></script>
+
+  <!-- ✅ Käyttäjänimen lähetys palvelimelle heti kun socket-yhteys muodostuu -->
+  <script>
+    const socket = io();
+
+    const username = localStorage.getItem('username');
+    if (username) {
+      socket.emit('username_set', username);
+    }
+  </script>
 </body>
 </html>

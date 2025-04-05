@@ -78,6 +78,5 @@ button:hover {
 
 .lock-icon {
   margin-left: 10px;
-  font-size: 18px; /* Unicode-lukon koko */
-  color: #ff0000; /* Punainen väri lukolle */
+  font-size: 18px;
 }
