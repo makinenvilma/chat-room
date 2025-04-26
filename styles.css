@@ -1,6 +1,7 @@
 body {
-  font-family: Arial, sans-serif;
-  background-color: #f0f0f0;
+  font-family: 'Roboto', Arial, sans-serif;
+  background-color: #000;
+  color: #e0e0e0;
   margin: 0;
   padding: 0;
 }
@@ -10,21 +11,66 @@ body {
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
-  background-color: white;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  background-color: #1a1a1a;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
   border-radius: 10px;
 }
 
 h1,
 h2 {
   text-align: center;
-  color: #333;
+  color: #f0f0f0;
 }
 
 #room-list,
 #create-room,
 #username-section {
   margin-bottom: 30px;
+}
+
+#username-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #222;
+  padding: 15px;
+  border-radius: 5px;
+}
+
+#create-room {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background-color: #222;
+  padding: 15px;
+  border-radius: 5px;
+}
+
+#username-section input,
+#create-room input {
+  margin-bottom: 10px;
+  width: 80%;
+  max-width: 300px;
+}
+
+#create-room input {
+  width: auto;
+  max-width: 200px;
+}
+
+#username-section button,
+#create-room button {
+  margin-bottom: 10px;
+  width: 150px;
+  text-align: center;
+}
+
+#room-list {
+  background-color: #222;
+  padding: 15px;
+  border-radius: 5px;
 }
 
 #room-list ul {
@@ -45,28 +91,39 @@ h2 {
 
 #messages {
   height: 300px;
-  border: 1px solid #ccc;
+  border: 1px solid #333;
   margin-bottom: 10px;
   padding: 10px;
   overflow-y: auto;
-  background-color: #fafafa;
+  background-color: #262626;
 }
 
 #message-input {
   width: calc(100% - 80px);
+  background-color: #333;
+  color: #fff;
+  border: 1px solid #444;
+}
+
+input {
+  background-color: #333;
+  color: #dcdcdc;
+  border: 1px solid #444;
+  padding: 10px;
+  border-radius: 5px;
 }
 
 button {
   padding: 10px 15px;
-  background-color: #007bff;
-  color: white;
+  background-color: #444;
+  color: #dcdcdc;
   border: none;
   border-radius: 5px;
   cursor: pointer;
 }
 
 button:hover {
-  background-color: #0056b3;
+  background-color: #666;
 }
 
 #current-username-display {
@@ -74,9 +131,23 @@ button:hover {
   text-align: center;
   font-size: 16px;
   font-weight: bold;
+  background-color: #222;
+  border-radius: 5px;
 }
 
-.lock-icon {
+lock-icon {
   margin-left: 10px;
   font-size: 18px;
+  color: #fff;
+}
+
+#chat-room {
+  background-color: #222;
+  padding: 15px;
+  border-radius: 5px;
+}
+
+#chat-room input,
+#chat-room button {
+  margin-top: 10px;
 }
