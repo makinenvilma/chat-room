@@ -9,30 +9,30 @@
 </head>
 <body>
   <div class="container">
-    <!-- ✅ Käyttäjänimen näyttö -->
+    <!-- Käyttäjänimen näyttö -->
     <div id="current-username-display">
       <p><span id="display-username"></span></p>
     </div>
 
-    <!-- ✅ Nimimerkin vaihtaminen -->
+    <!-- Nimimerkin vaihtaminen -->
     <div id="username-section">
       <input type="text" id="username-input" placeholder="Uusi nimimerkki" />
       <button onclick="setUsername()">Aseta nimimerkki</button>
     </div>
 
-    <!-- ✅ Lista saatavilla olevista huoneista -->
+    <!-- Lista saatavilla olevista huoneista -->
     <div id="room-list">
       <ul id="available-rooms"></ul>
     </div>
 
-    <!-- ✅ Huoneen luonti -->
+    <!-- Huoneen luonti -->
     <div id="create-room">
       <input type="text" id="room-name" placeholder="Huoneen nimi" />
       <input type="password" id="room-password" placeholder="Salasana (valinnainen)" />
       <button onclick="createRoom()">Luo huone</button>
     </div>
 
-    <!-- ✅ Chat-huoneen näkymä -->
+    <!-- Chat-huoneen näkymä -->
     <div id="chat-room" style="display: none">
       <h2 id="room-title"></h2>
       <div id="messages"></div>
@@ -42,13 +42,13 @@
     </div>
   </div>
 
-  <!-- ✅ Socket.io asiakaspuolen kirjasto -->
+  <!-- Socket.io kirjasto -->
   <script src="http://localhost:5000/socket.io/socket.io.js"></script>
   
-  <!-- ✅ Sovelluksen JavaScript -->
+  <!-- Sovelluksen JavaScript -->
   <script src="app.js"></script>
 
-  <!-- ✅ Käyttäjänimen lähetys palvelimelle heti kun socket-yhteys muodostuu -->
+  <!-- Käyttäjänimen lähetys palvelimelle heti kun socket-yhteys muodostuu -->
   <script>
     const socket = io();
 
