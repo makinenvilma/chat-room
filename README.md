@@ -1,4 +1,4 @@
-# Chat Room Web App
+# 💬 Chat Room Web App
 
 A real-time messaging platform with customizable nicknames and the ability to create or join chat rooms.  
 Built as part of a thesis project, this application demonstrates full-stack development skills and explores real-time communication technologies.
@@ -26,7 +26,7 @@ _Example view inside an active chat room._
 - **Database:** MongoDB
 - **Front-end:** HTML, CSS, JavaScript
 
-## Installation
+## 🚀 Installation & Setup
 
 1. **Clone the repository**
    ```bash
